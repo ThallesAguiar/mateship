@@ -1,0 +1,2 @@
+Porque esse utils?
+Porque ele não vai ser uma tabela no banco de dados, ele vai ser somente uma utilidade mesmo.
