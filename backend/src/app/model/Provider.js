@@ -1,12 +1,12 @@
 const { Schema, model } = require("mongoose");
 
 const providerScrema = new Schema({
-    cnpj: {
-        type: String,
+    company_numbering: {
+        type: Number,
         allowNull: true
     },
-    cpf: {
-        type: String,
+    personal_numbering: {
+        type: Number,
         allowNull: true
     },
     name: {
@@ -17,9 +17,13 @@ const providerScrema = new Schema({
         type: String,
         allowNull: true
     },
-    type_store: {
+    record_type: {
         type: String,
-        allowNull: true
+        allowNull: false
+    },
+    sale_type: {
+        type: String,
+        allowNull: false
     },
 },
     {
