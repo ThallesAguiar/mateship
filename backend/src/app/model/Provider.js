@@ -1,13 +1,10 @@
 const { Schema, model } = require("mongoose");
 
-const providerScrema = new Schema({
-    company_numbering: {
-        type: Number,
-        allowNull: true
-    },
-    personal_numbering: {
-        type: Number,
-        allowNull: true
+const providerSchema = new Schema({
+    numbering: {
+        type: String,
+        allowNull: true,
+        unique: true,
     },
     name: {
         type: String,
@@ -17,11 +14,19 @@ const providerScrema = new Schema({
         type: String,
         allowNull: true
     },
-    record_type: {
+    phone: {
+        type: String,
+        allowNull: true,
+    },
+    whats: {
+        type: String,
+        allowNull: true,
+    },
+    recordType: {
         type: String,
         allowNull: false
     },
-    sale_type: {
+    saleType: {
         type: String,
         allowNull: false
     },
@@ -30,4 +35,4 @@ const providerScrema = new Schema({
         timestamps: true, //createdAt, updatedAt. Armazena automatico pelo mongoose dt de criação e atualização
     });
 
-module.exports = model('Provider', providerScrema);
+module.exports = model('Provider', providerSchema);

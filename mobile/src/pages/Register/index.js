@@ -60,8 +60,6 @@ const Register = ({ navigation }) => {
 
       const { token, user } = response.data;
 
-      response.headers.Authorization = `Bearer ${token}`;
-
       await AsyncStorage.setItem('user', JSON.stringify(user));
       await AsyncStorage.setItem('token', token);
 

@@ -1,18 +1,18 @@
-const User = require('../model/User');
-const bcrypt = require('bcryptjs');
-const Yup = require('yup');
-const jwt = require('jsonwebtoken');
-const authConfig = require('../../config/auth');
+const User = require("../model/User");
+const bcrypt = require("bcryptjs");
+const Yup = require("yup");
+const jwt = require("jsonwebtoken");
+const authConfig = require("../../config/auth");
 
 class UserController {
   async store(req, res) {
     const schema = Yup.object().shape({
       name: Yup.string().required(),
       email: Yup.string().email().required(),
-      password: Yup.string().required().min(6)
-    })
+      password: Yup.string().required().min(6),
+    });
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: "Validation fails" });
     }
 
     const userExists = await User.findOne({ email: req.body.email });
@@ -28,10 +28,16 @@ class UserController {
       coordinates: [longitude, latitude],
     };
 
-    //criptografa a senha 
+    //criptografa a senha
     const password = await bcrypt.hash(req.body.password, 10);
 
-    const { _id } = await User({name, email, provider, password, location}).save();
+    const { _id } = await User({
+      name,
+      email,
+      provider,
+      password,
+      location,
+    }).save();
 
     return res.json({
       user: {
@@ -39,7 +45,7 @@ class UserController {
         name,
         email,
         provider,
-        location
+        location,
       },
       token: jwt.sign(
         // 1º, é o payload
@@ -48,7 +54,7 @@ class UserController {
         process.env.AUTH_SECRET,
         // 3º, não obrigatório, a configuração para o jwt
         { expiresIn: authConfig.expiresIn }
-      )
+      ),
     });
   }
 
@@ -57,18 +63,30 @@ class UserController {
       name: Yup.string(),
       email: Yup.string().email(),
       oldPassword: Yup.string().min(6),
-      password: Yup.string().min(6).when('oldPassword', (oldPassword, field) => oldPassword ? field.required() : field),
+      password: Yup.string()
+        .min(6)
+        .when("oldPassword", (oldPassword, field) =>
+          oldPassword ? field.required() : field
+        ),
       // com o WHEN consigo ter acesso a todos os campos do Yup(schema). É uma função condicional
       // No 1º parametro é qual variavel eu quero acessar,
       // No 2º ele recebe uma função, que recebe o valor da variavel oldPassword, e o field que seria a continuação da validação do password do schema
-      confirmPassword: Yup.string().when('password', (password, field) => password ? field.required().oneOf([Yup.ref('password')]) : field)
+      confirmPassword: Yup.string().when("password", (password, field) =>
+        password ? field.required().oneOf([Yup.ref("password")]) : field
+      ),
       // confirma se as senhas são iguais. ref faz referencia a variavel password
-    })
+    });
     if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
+      return res.status(400).json({ error: "Validation fails" });
     }
 
     const user = await User.findById(req.userId);
+
+    // Insere o id do model PROVIDER no relacionamento com USER.
+    if((user.id_provider === null) && (user.provider === true)){
+      await User.findByIdAndUpdate( user._id, {id_provider: req.body.id_provider }, { new: true });
+      return res.status(200).json({ success: "id_provider updated with success" });
+    }
 
     if (req.body.email !== user.email) {
       const userExists = await User.findOne({ email: req.body.email });
@@ -83,39 +101,56 @@ class UserController {
       const valid = await bcrypt.compare(req.body.oldPassword, user.password);
 
       if (!valid)
-        return res.status(401).json({ error: 'Password does not match' });
+        return res.status(401).json({ error: "Password does not match" });
 
-      //criptografa a NOVA senha 
+      //criptografa a NOVA senha
       req.body.password = await bcrypt.hash(req.body.password, 10);
-    }
+    }  
 
     const { bio, gender, birthday, latitude, longitude } = req.body;
 
     const location = {
-      type: 'Point',
+      type: "Point",
       coordinates: [longitude, latitude],
     };
 
-    const { _id, name, email, provider, id_avatar } = await User.findByIdAndUpdate(user._id, {
+    const {
+      _id,
+      name,
+      email,
+      provider,
+      id_avatar,
+    } = await User.findByIdAndUpdate(
+      user._id,
+      {
+        bio,
+        gender,
+        birthday,
+        location,
+        id_avatar: req.body.id_avatar,
+      },
+      { new: true }
+    ).populate({
+      path: "id_avatar",
+      model: "File",
+      select: ["_id", "url"],
+    });
+
+    return res.json({
+      _id,
+      name,
+      email,
+      provider,
       bio,
       gender,
       birthday,
-      location,
-      id_avatar: req.body.id_avatar
-    }, { new: true })
-      .populate({
-        path: 'id_avatar',
-        model: 'File',
-        select: ['_id', 'url']
-      });
-
-    return res.json({
-      _id, name, email, provider, bio, gender, birthday, latitude, longitude, id_avatar
+      latitude,
+      longitude,
+      id_avatar,
     });
-  };
+  }
 
   async index(req, res) {
-
     // const { likes, dislikes } = await User.findById(req.userId);
 
     // filtra os usuarios que não estam em like/dislike/ e o proprio usuario logado.
@@ -137,5 +172,4 @@ class UserController {
   }
 }
 
-
-module.exports = new UserController()
+module.exports = new UserController();

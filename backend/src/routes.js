@@ -23,7 +23,7 @@ const upload = multer(multerConfig);
 
 
 routes.get('/', (req, res) => {
-    return res.status(200).json("Bem-vindo a API do matchê!");
+    return res.status(200).json("Bem-vindo a API do mateship!");
 });
 
 routes.post('/sessions', SessionController.store);
@@ -32,10 +32,10 @@ routes.post('/users', UserController.store);
 // este middleware somente irá valer o que tiver abaixo dele.(Esta forma é global)
 // pode tbm declarar estes meddlewares localmente.
 // Middleware de autenticaçao que retorna o id do usuario logado
-routes.use(authMiddleware);
+// routes.use(authMiddleware);
 
 /**GETs */
-routes.get('/providers', ProviderController.index);
+routes.get('/provider', ProviderController.index);
 routes.get('/users', UserController.index);
 routes.get('/search', SearchController.index);
 
@@ -43,6 +43,7 @@ routes.get('/search', SearchController.index);
 
 /**POSTs */
 routes.post('/address', AddressController.store);
+routes.post('/provider', ProviderController.store);
 routes.post('/files', upload.single('file'), FileController.store);/* este upload, é a variavel que recebe as configurações do multer. É um middleware*/
 routes.post('/users/:likeIdUser/likes', LikeController.store);
 routes.post('/users/:likeIdUser/dislikes', DislikeController.store);
